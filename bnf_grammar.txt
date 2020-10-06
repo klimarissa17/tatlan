@@ -1,0 +1,43 @@
+func_dec id '(' params_list ')' LBRACE stmt_list return_stmt RBRACE
+
+params_list: empty | value | value, params_list
+
+statement: empty| if_stmt | while_stmt | LBRACE  stmt_list RBRACE | break_stmt | return_stmt | continue_stmt | assign_exp
+
+stmt_list: statement | stmt_list NEWLINE statement
+
+if_stmt: 'әгер' expession 'алайса' statement ['башкача' statement]
+
+while_stmt: expession 'булганда' 'үтә' statement
+
+unary_exp: value | postfix_exp ('++' | '--')
+
+assign_exp: unary_exp assign_op add_exp  
+
+assign_op:  '=' | '*=' | '/=' | '//=' | '%=' | '+=' | '-='
+
+expression: and_exp 'яки' exp | and_exp 
+
+and_exp: not_exp 'һәм' and_exp | not_exp
+
+not_exp: comp_exp 'түгел' | comp_exp
+
+comp_exp: add_exp comp_op add_exp 
+
+comp_op: '<'|'>'|'=='|'>='|'<='|'!='
+
+add_exp: term ('+'|'-') add_exp | term 
+
+term: factor ('*'|'/'|'%'|'//') term | factor
+
+factor: '-' value | value
+
+value: const | id  
+
+break_stmt: 'тукта'
+
+continue_stmt: 'алга'
+
+return_stmt: 'кайтар' expression 
+
+empty: 
