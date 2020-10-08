@@ -19,67 +19,77 @@ class Lexer {
     public: 
         Lexer(wstring str);        
 
+    enum class Kind {
+        Header, 
+        Open, 
+        Close, 
+        Secondary,
+        None,
+    };
         enum class LexemType{
-            Id, 
-            String, 
-            Char, 
-            Int,
-            Float, 
+            Id = 0, 
+            String = 1, 
+            Char = 2, 
+            Int = 3,
+            Float = 4, 
             
-            If, 
-            Else, 
-            While, 
-            Return, 
-            Break, 
-            Function,
+            If = 5, 
+            Else = 6, 
+            While = 7, 
+            Return = 8, 
+            Break = 9, 
+            Function = 10,
 
-            Plus, 
-            Minus, 
-            Asterisk, 
-            Slash, 
-            Percent,
-            Colon, 
-            Semicolon,
-            Power,
+            Plus = 11, 
+            Minus = 12, 
+            Asterisk = 13, 
+            Slash = 14, 
+            Percent = 15,
+            Colon = 16, 
+            Semicolon = 17,
+            Power = 18,
             
-            DoubleEqual,
-            NotEqual,
-            Assign,
+            DoubleEqual = 19,
+            NotEqual = 20,
+            Assign = 21,
             
-            Begin,
-            End,
+            Begin = 22,
+            End = 23,
 
-            LeftParenthesis, 
-            RightParenthesis,
-            LeftBracket,
-            RightBracket,
+            LeftParenthesis = 24, 
+            RightParenthesis = 25,
+            LeftBracket = 26,
+            RightBracket = 27,
 
-            Comma,
+            Comma = 28,
 
-            ARITHM_OP, COMPARE_OP, NOT_OP, 
-            UNARY_MINUS_OP, L_BRACE, R_BRACE, POSTFIX_WHILE_KW, READ_KW, WRITE_KW, LOGICAL_OP}; 
+            }; 
 
         std::unordered_map<wstring, LexemType> classifier;
         typedef struct {
             size_t   start_pos;
             size_t   lexem_length;
             LexemType type;
+            Kind kind;
         } lexem_t;
 
         wstring text;
         wchar_t * position;
         size_t position_num;
-        void read_token();
-        lexem_t classify_token(wstring str);
         std::wregex separator_finder;
         std::vector <lexem_t> tokens;
         const char* start = nullptr;
-        const wstring regex_text = LR"(\bӘГӘР\b|\bБАШКАЧА\b|\bБУЛГАНДА\b|\bБАШ\b|\bОЧ\b|\bюл\b|\bбөтен\b|\bвакланма\b|\bсимвол\b|\bкайтар\b|\bЯЗ\b|\bУКЫ\b|\bФУНКЦИЯ\b|\bЯКИ\b|\bҺӘМ\b|\bТҮГӘЛ\b|\[|\]|\(|\)|\,|:=|==|\-|\+|\\|\^)";
+        const wstring regex_text = LR"(\bӘГӘР\b|\bБАШКАЧА\b|\bБУЛГАНДА\b|\bБАШ\b|\bОЧ\b|\bЮЛ\b|\bБӨТЕН\b|\bВАКЛАНМА\b|\bСИМВОЛ\b|\bКАЙТАР\b|\bЯЗ\b|\bУКЫ\b|\bФУНКЦИЯ\b|\bЯКИ\b|\bҺӘМ\b|\bТҮГӘЛ\b|\[|\]|\(|\)|\,|:=|==|\-|\+|\\|\^)";
 
         void process_text();
+    private: 
+        void read_token();
+        lexem_t classify_by_lexem_type(wstring str);
+
 };
 
 Lexer::Lexer(wstring str) {
+    std::locale::global(std::locale("tt_RU.UTF-8"));
     text = str;
     position_num = 0;
     separator_finder.assign(regex_text);
@@ -100,17 +110,17 @@ Lexer::Lexer(wstring str) {
         {L":",     Lexer::LexemType::Colon},
         {L";",     Lexer::LexemType::Semicolon},
         {L",",     Lexer::LexemType::Comma},
-        {L"булганда",   Lexer::LexemType::While},
-        {L"баш",        Lexer::LexemType::Begin},
-        {L"оч",         Lexer::LexemType::End},
-        {L"юл",         Lexer::LexemType::String},
-        {L"бөтен",      Lexer::LexemType::Int},
-        {L"вакланма",   Lexer::LexemType::Float},
-        {L"символ",     Lexer::LexemType::Char},
-        {L"кайтар",     Lexer::LexemType::Return},
-        {L"функция",    Lexer::LexemType::Function},
-        {L"әгәр",       Lexer::LexemType::If},
-        {L"башкача",    Lexer::LexemType::Else}
+        {L"БУЛГАНДА",   Lexer::LexemType::While},
+        {L"БАШ",        Lexer::LexemType::Begin},
+        {L"ОЧ",         Lexer::LexemType::End},
+        {L"ЮЛ",         Lexer::LexemType::String},
+        {L"БӨТЕН",      Lexer::LexemType::Int},
+        {L"ВАКЛАНМА",   Lexer::LexemType::Float},
+        {L"СИМВОЛ",     Lexer::LexemType::Char},
+        {L"КАЙТАР",     Lexer::LexemType::Return},
+        {L"ФУНКЦИЯ",    Lexer::LexemType::Function},
+        {L"ӘГӘР",       Lexer::LexemType::If},
+        {L"БАШКАЧА",    Lexer::LexemType::Else}
     };
 }
 
@@ -144,12 +154,12 @@ void Lexer::read_token() {
         
     }
         
-    lexem_t token = classify_token(match[0]);
+    lexem_t token = classify_by_lexem_type(match[0]);
     position_num = position_num + match[0].length();
     tokens.push_back(token);
 }
 
-Lexer::lexem_t Lexer::classify_token(wstring str) {
+Lexer::lexem_t Lexer::classify_by_lexem_type(wstring str) {
     lexem_t res;
     res.lexem_length = str.length();
     res.start_pos = position_num;
@@ -169,12 +179,3 @@ void Lexer::process_text() {
     }
 }
 
-
-int main() {
-
-    std::locale::global(std::locale("tt_RU.UTF-8"));
-    std::wstring a = L"БАШ ОЧ  ";
-    Lexer l(a);
-    l.process_text(); 
-    return 0;
-}
